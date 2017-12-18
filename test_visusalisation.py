@@ -13,16 +13,25 @@ plt.pause(0.01)
 
 while True:
     try:
-        response = requests.get(api_addr, { "window": 20 })
+        response = requests.get(api_addr, { "window": 60 })
         measurements = response.json()
 
         times = []
         values = []
 
+        last_time = None
         for i, m in enumerate(measurements):
             m_time = datetime.strptime(m[3][:19], "%Y-%m-%d %H:%M:%S")
-            if datetime.now().timestamp() - m_time.timestamp() > 360:
-                continue
+
+            # Use only the data of the last experiment in the visualization
+            if last_time is not None:
+                diff = m_time.timestamp() - last_time
+                if diff > 10:
+                    times = []
+                    values = []
+
+            last_time = m_time.timestamp()
+
             times.append(m_time)
             values.append(m[5])
 
