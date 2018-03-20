@@ -1,6 +1,6 @@
 import argparse
 import tornado.web
-
+import os
 import json
 import sqlite3
 
@@ -39,8 +39,11 @@ if __name__ == "__main__":
         "xsrf_cookies": False,
     }
 
+    PATH = os.path.dirname(os.path.realpath(__file__))
+    static_path_dir = os.path.join(PATH, 'static')
+
     app = tornado.web.Application([
-        #(r"/", MainHandler),
+        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path_dir}),
         (r"/api/measurement", SensorDataHandler),
         #(r"/api/sensors", SensorListHandler),
         #(r"/api/sensorselection", SensorSelectionHandler),
