@@ -13,10 +13,14 @@ while True:
     try:
         time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         val_range_min += random.randint(-100, 100)
-        val_range_max += random.randint(-100, 100)
+        val_range_max += random.randint(-100, 200)
         value = random.randint(val_range_min, val_range_max)
 
-        DB_cursor.execute("INSERT INTO Messwerten VALUES (?, 4, 3, ?, 0, ?, 0, null)", (index, time, value))
+        try:
+            DB_cursor.execute("INSERT INTO Messwerten VALUES (?, 4, 3, ?, 0, ?, 0, null)", (index, time, value))
+        except sqlite3.IntegrityError:
+            index += 1
+            continue
 
         # Save (commit) the changes
         DB_con.commit()

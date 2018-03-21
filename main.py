@@ -17,6 +17,7 @@ class SensorDataHandler(tornado.web.RequestHandler):
 
         measurements = DB_cursor.execute("SELECT * FROM Messwerten ORDER BY Zeit DESC LIMIT " + str(window_size)).fetchall()
         measurements.reverse()
+        print(measurements)
 
         self.write(json.dumps(measurements))
         return
