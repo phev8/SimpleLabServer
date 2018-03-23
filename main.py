@@ -8,6 +8,20 @@ DB_con = None
 DB_cursor = None
 
 
+class SensorDownloadHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
+    def get(self):
+        min_time = self.get_argument("from")
+        max_time = self.get_argument("to")
+        print(min_time, max_time)
+
+        measurements = DB_cursor.execute("SELECT * FROM Messwerten WHERE Zeit BETWEEN ? AND ? ORDER BY Zeit DESC", (min_time, max_time)).fetchall()
+        measurements.reverse()
+        self.write(json.dumps(measurements))
+        return
+
 class SensorDataHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -46,6 +60,7 @@ if __name__ == "__main__":
     app = tornado.web.Application([
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path_dir}),
         (r"/api/measurement", SensorDataHandler),
+        (r"/api/measurement-in-range", SensorDownloadHandler),
         #(r"/api/sensors", SensorListHandler),
         #(r"/api/sensorselection", SensorSelectionHandler),
         # (r"/api/ir", SensorDataHandler, {'proxyport': args.proxyport }),

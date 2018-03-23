@@ -1,14 +1,20 @@
 <template>
-  <div class="container">
-      <button class="btn btn-primary" @click="fetchData()">Fetch Data</button>
-      <input type="number" v-model="windowSize">
-      <div class="row">
-          <div class="col-8">
-                <app-line-chart :chartData="data" :options="options"></app-line-chart>
-          </div>
+  <div id="component">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12 col-sm-4 col-lg-3">
+        <div class="form-group">
+          <label for="windowSize">Window Size:</label>
+          <input class="form-control" type="number" v-model="windowSize" id="windowSize">
+          <small id="windowSizeHelp" class="form-text text-muted">Number of maximum samples displayed at once.</small>
+        </div>
+        <button class="btn btn-light" @click="removeOldest()">Remove oldest sample</button>
       </div>
-      <p>TODO: add vue chart object with resource from the server here</p>
-
+      <div class="col-12 col-sm-8 col-lg-9">
+        <app-line-chart :chartData="data" :options="options"></app-line-chart>
+      </div>
+    </div>
+  </div>
   </div>
 </template>
 
@@ -26,11 +32,11 @@ export default {
   },
   data() {
     return {
-      windowSize: 10,
+      windowSize: 60,
       setIntervalID: {},
       data: {
         labels: [],
-        
+
         datasets: [          {
             fill: true,
             showLine: true,
@@ -87,17 +93,7 @@ export default {
             this.rawData.shift();
           }
         }
-        
-        var labels = [];
-        var values = [];
-        data.forEach( row => {
 
-          labels.push(row[3]);
-          values.push({
-            x: moment(row[3]),
-            y: row[5]
-          });
-        });
         this.data = {
           datasets: [
             {
@@ -105,7 +101,7 @@ export default {
               showLine: true,
               borderColor: '#f87979',
               backgroundColor: '#f87979',
-              label: 'Conductivity Values',                
+              label: 'Conductivity Values',
               data: this.rawData
             }
           ]
@@ -114,6 +110,21 @@ export default {
         error => {
           console.log(error)
       })
+    },
+    removeOldest() {
+       this.rawData.shift();
+       this.data = {
+          datasets: [
+            {
+              fill: false,
+              showLine: true,
+              borderColor: '#f87979',
+              backgroundColor: '#f87979',
+              label: 'Conductivity Values',
+              data: this.rawData
+            }
+          ]
+        };
     }
   },
   components: {
@@ -121,3 +132,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+#component {
+  margin: 35px 20px;
+}
+
+</style>
