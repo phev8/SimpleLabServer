@@ -65,56 +65,55 @@ export default {
           window: 1
         }
       })
-        .then(response => {
-          return response.json();
-        }).then(data => {
-          if (data.length > 0) {
-            const currentData = {
-              x: moment(data[0][3]),
-              y: data[0][5]
-            };
+      .then(response => {
+        return response.json();
+      }).then(data => {
+        if (data.length > 0) {
+          const currentData = {
+            x: moment(data[0][3]),
+            y: data[0][5]
+          }
 
-            if (this.rawData.length > 0) {
-              const last_index = this.rawData.length - 1;
-              if (this.rawData[last_index] != currentData) {
-                this.rawData.push(currentData);
-              }
-            } else {
+          if (this.rawData.length > 0) {
+            const last_index = this.rawData.length - 1
+            if (this.rawData[last_index] !== currentData) {
               this.rawData.push(currentData);
             }
-
-            if (this.rawData.length > this.windowSize) {
-              this.rawData.shift();
-            }
+          } else {
+            this.rawData.push(currentData);
           }
-          
-          var labels = [];
-          var values = [];
-          data.forEach(row => {
 
-            labels.push(row[3]);
-            values.push({
-              x: moment(row[3]),
-              y: row[5]
-            });
+          if (this.rawData.length > this.windowSize) {
+            this.rawData.shift();
+          }
+        }
+        
+        var labels = [];
+        var values = [];
+        data.forEach( row => {
+
+          labels.push(row[3]);
+          values.push({
+            x: moment(row[3]),
+            y: row[5]
           });
-          console.log(this.rawData);
-          this.data = {
-            datasets: [
-              {
-                fill: false,
-                showLine: true,
-                borderColor: '#f87979',
-                backgroundColor: '#f87979',
-                label: 'Conductivity Values',                
-                data: this.rawData
-              }
-            ]
-          };
-        }).catch(
-          error => {
-            console.log(error);
-        })
+        });
+        this.data = {
+          datasets: [
+            {
+              fill: false,
+              showLine: true,
+              borderColor: '#f87979',
+              backgroundColor: '#f87979',
+              label: 'Conductivity Values',                
+              data: this.rawData
+            }
+          ]
+        };
+      }).catch(
+        error => {
+          console.log(error)
+      })
     }
   },
   components: {

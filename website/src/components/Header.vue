@@ -8,18 +8,14 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <router-link tag="li" to="/data-viewer" class="nav-item" active-class="active">
-                    <a class="nav-link">Data Viewer</a>
-                </router-link>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Features</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Pricing</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#">Disabled</a>
-                </li>
+                    <a class="nav-link">Live data</a>
+                </router-link>                
+                <router-link tag="li" to="/downloader" class="nav-item" active-class="active">
+                    <a class="nav-link">Data download</a>
+                </router-link>                
+                <router-link tag="li" to="/video-creator" class="nav-item" active-class="active">
+                    <a class="nav-link">Video creator</a>
+                </router-link>                
             </ul>
         </div>
     </nav>
