@@ -3,9 +3,55 @@ import tornado.web
 import os
 import json
 import sqlite3
+from datetime import datetime
+from video_generator import create_signal_plot_video
 
 DB_con = None
 DB_cursor = None
+
+
+class GetVideoListHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
+    def get(self):
+        file_list = os.listdir(static_path_dir)
+        file_list.sort()
+
+        video_list = []
+        for f in file_list:
+            if f.split('.')[-1] != 'mp4' or len(f.split('_')) != 3:
+                continue
+            else:
+                video_list.append(
+                    {
+                        "link": "static/" + f,
+                        "start": f.split('_')[1],
+                        "end": f.split('.')[0].split('_')[2]
+                    }
+                )
+
+        video_list.reverse()
+
+        self.write(json.dumps(video_list))
+
+
+class SignalPlotGeneratorHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
+    def get(self):
+        min_time = self.get_argument("from")
+        max_time = self.get_argument("to")
+        window_size = int(self.get_argument("window"))
+
+        video_name = create_signal_plot_video(DB_cursor, min_time, max_time, window_size, 1.0/24)
+
+        self.write(json.dumps({
+            "link": "static/" + video_name,
+            "start": video_name.split('_')[1],
+            "end": video_name.split('.')[0].split('_')[2],
+        }))
 
 
 class SensorDownloadHandler(tornado.web.RequestHandler):
@@ -21,6 +67,7 @@ class SensorDownloadHandler(tornado.web.RequestHandler):
         measurements.reverse()
         self.write(json.dumps(measurements))
         return
+
 
 class SensorDataHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
@@ -61,6 +108,8 @@ if __name__ == "__main__":
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path_dir}),
         (r"/api/measurement", SensorDataHandler),
         (r"/api/measurement-in-range", SensorDownloadHandler),
+        (r"/api/plot-video-generator", SignalPlotGeneratorHandler),
+        (r"/api/videos", GetVideoListHandler),
         #(r"/api/sensors", SensorListHandler),
         #(r"/api/sensorselection", SensorSelectionHandler),
         # (r"/api/ir", SensorDataHandler, {'proxyport': args.proxyport }),
