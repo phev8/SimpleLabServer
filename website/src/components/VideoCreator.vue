@@ -47,16 +47,18 @@
       <div class="row justify-content-center">        
         <app-loader :loading="processing" :size="'100px'"></app-loader>
         <div v-if="processing" class="col-12" style="text-align: center; margin: 25px;">
-          <p>Generating video on server, it can take a while...</p>
+          <p>Generating video on server, it can take a while... Be patient.</p>
         </div>
         
         <div class="col-12">
           List of videos
           <ul class="list-group">
-            <li v-for="video in videos" class="list-group-item">
-              {{ video.link }}
-              <button class="btn btn-danger">Remove</button>
-              <button class="btn btn-primary">Download</button>
+            <li v-if="videos.length <= 0" class="list-group-item">No videos generated yet.</li>
+            <li v-else v-for="video in videos" :key="video.link" class="list-group-item">              
+              Signal plot from {{ video.start }}
+              to {{ video.end }}
+              <button style="float: right; margin: 0 10px;" class="btn btn-primary" @click="downloadVideo(video)">Download</button>
+              <button style="float: right; margin: 0 10px;" class="btn btn-danger" @click="deleteVideo(video)">Remove</button>              
             </li>
           </ul>
         </div>
@@ -144,9 +146,9 @@ export default {
       .then(response => {
         return response.json();
       }).then(data => {
-        console.log(data);
-        this.videos.unshift(data);
+        console.log(data);        
         this.processing = false;
+        this.fetchVideos();
       }).catch(
         error => {
           this.processing = false;
@@ -183,14 +185,29 @@ export default {
           console.log(error)
       })
     },
-    download() {
-      let csvData = 'time;value\n';
-      this.rawData.forEach( item => {
-        csvData += item.x.format("YYYY-MM-DD HH:mm:ss") + ";" + item.y.toString() + "\n";
-      });
-
-      var blob = new Blob([csvData], {type: "text/plain;charset=utf-8"});
-      FileSaver.saveAs(blob, "lab_measurement_" + moment(this.fromDate).format("YYYY-MM-DD_HH-mm-ss") + "_" + moment(this.toDate).format("HH-mm-ss") + ".csv");
+    async downloadVideo(video) {
+      let response = await this.$http.get(video.link, {responseType: 'arraybuffer'});
+      let blob = new Blob([response.data], {type:response.headers.get('content-type')});
+      let filname = moment(video.end, "YYYY-MM-DD-HH-mm-ss").format("YYYY-MM-DD_HH-mm-ss") + "_" + moment(video.start, "YYYY-MM-DD-HH-mm-ss").format("YYYY-MM-DD_HH-mm-ss") + ".mp4";
+      FileSaver.saveAs(blob, filname);
+    },
+    deleteVideo(video) {
+      if (confirm('Are you sure you want to delete this video?')) {
+        this.$http.get('api/delete-video', {
+          params: {
+            filename: video.link
+          }
+        }).then(
+          response => {
+            this.fetchVideos();
+          }
+        ).catch(
+          error => {
+            console.log(error);
+            this.fetchVideos();
+          }
+        )
+      }
     }
   },
   components: {

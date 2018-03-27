@@ -85,11 +85,9 @@ def create_signal_plot_video(DB_cursor, start_time, end_time, window_size, windo
     with writer.saving(fig, output_file, 100):
 
         for wnd in windows.itertuples():
-            print(wnd)
             plt.xlim(wnd.t_start - start_time_timestamp, wnd.t_end - start_time_timestamp)
             current_time = wnd.t_mid
             vl.set_xdata(current_time - start_time_timestamp)
-            plt.draw()
             writer.grab_frame()
 
             # current_values = raw_df[(raw_df.index >= wnd.t_start) & (raw_df.index <= wnd.t_end)]

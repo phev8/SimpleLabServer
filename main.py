@@ -3,7 +3,6 @@ import tornado.web
 import os
 import json
 import sqlite3
-from datetime import datetime
 from video_generator import create_signal_plot_video
 
 DB_con = None
@@ -34,6 +33,19 @@ class GetVideoListHandler(tornado.web.RequestHandler):
         video_list.reverse()
 
         self.write(json.dumps(video_list))
+
+
+class DeleteVideoHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
+    def get(self, *args, **kwargs):
+        filename = self.get_argument("filename")
+
+        try:
+            os.remove(os.path.join(PATH, filename))
+        except OSError:
+            pass
 
 
 class SignalPlotGeneratorHandler(tornado.web.RequestHandler):
@@ -83,6 +95,10 @@ class SensorDataHandler(tornado.web.RequestHandler):
         self.write(json.dumps(measurements))
         return
 
+class MyStaticFileHandler(tornado.web.StaticFileHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -105,11 +121,12 @@ if __name__ == "__main__":
     static_path_dir = os.path.join(PATH, 'static')
 
     app = tornado.web.Application([
-        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path_dir}),
+        (r'/static/(.*)', MyStaticFileHandler, {'path': static_path_dir}),
         (r"/api/measurement", SensorDataHandler),
         (r"/api/measurement-in-range", SensorDownloadHandler),
         (r"/api/plot-video-generator", SignalPlotGeneratorHandler),
         (r"/api/videos", GetVideoListHandler),
+        (r"/api/delete-video", DeleteVideoHandler),
         #(r"/api/sensors", SensorListHandler),
         #(r"/api/sensorselection", SensorSelectionHandler),
         # (r"/api/ir", SensorDataHandler, {'proxyport': args.proxyport }),
