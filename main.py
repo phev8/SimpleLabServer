@@ -3,6 +3,7 @@ import tornado.web
 import os
 import json
 import sqlite3
+from datetime import datetime
 from video_generator import create_signal_plot_video
 
 DB_con = None
@@ -57,6 +58,11 @@ class SignalPlotGeneratorHandler(tornado.web.RequestHandler):
         max_time = self.get_argument("to")
         window_size = int(self.get_argument("window"))
 
+        min_time = datetime.strptime(min_time, "%Y-%m-%d %H:%M:%S").timestamp()
+        max_time = datetime.strptime(max_time, "%Y-%m-%d %H:%M:%S").timestamp()
+        min_time = datetime.utcfromtimestamp(min_time)
+        max_time = datetime.utcfromtimestamp(max_time)
+
         video_name = create_signal_plot_video(DB_cursor, min_time, max_time, window_size, 1.0/24)
 
         self.write(json.dumps({
@@ -73,6 +79,11 @@ class SensorDownloadHandler(tornado.web.RequestHandler):
     def get(self):
         min_time = self.get_argument("from")
         max_time = self.get_argument("to")
+
+        min_time = datetime.strptime(min_time, "%Y-%m-%d %H:%M:%S").timestamp()
+        max_time = datetime.strptime(max_time, "%Y-%m-%d %H:%M:%S").timestamp()
+        min_time = datetime.utcfromtimestamp(min_time)
+        max_time = datetime.utcfromtimestamp(max_time)
         print(min_time, max_time)
 
         measurements = DB_cursor.execute("SELECT * FROM Messwerten WHERE Zeit BETWEEN ? AND ? ORDER BY Zeit DESC", (min_time, max_time)).fetchall()
